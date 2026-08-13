@@ -49,6 +49,10 @@ generate(
 
 Le nombre de mots demandé est exact et réparti aussi équitablement que possible entre les paragraphes.
 
+Lorsque la ponctuation est activée, le générateur applique la typographie française :
+les points d’exclamation et d’interrogation sont précédés d’une espace insécable, et
+la première lettre de chaque phrase est mise en majuscule, y compris si elle est accentuée.
+
 ### Thèmes
 
 - `botanique` (défaut)

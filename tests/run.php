@@ -38,6 +38,19 @@ $punctuated = $generator->generate(30, 2, 'fantasy', true);
 check(countWords($punctuated) === 30, 'La ponctuation ne doit pas modifier le nombre de mots.');
 check(str_contains($punctuated, '.'), 'La sortie ponctuée doit contenir des fins de phrases.');
 
+$reflection = new ReflectionClass($generator);
+$uppercaseFirst = $reflection->getMethod('uppercaseFirst');
+check($uppercaseFirst->invoke($generator, 'écorêve') === 'Écorêve', 'Une initiale accentuée doit être mise en majuscule.');
+check($uppercaseFirst->invoke($generator, 'azur') === 'Azur', 'Une initiale ASCII doit être mise en majuscule.');
+
+$hasFrenchMark = false;
+for ($attempt = 0; $attempt < 20; $attempt++) {
+    $sample = $generator->generate(200, 1, 'botanique', true);
+    check(!preg_match('/(?<!\x{00A0})[!?]/u', $sample), 'Les points ! et ? doivent être précédés d’une espace insécable.');
+    $hasFrenchMark = $hasFrenchMark || (bool) preg_match('/\x{00A0}[!?]/u', $sample);
+}
+check($hasFrenchMark, 'Le test doit rencontrer au moins un point ! ou ? français.');
+
 $array = $generator->generate(12, 3, format: 'array');
 check(is_array($array) && count($array) === 3, 'Le format array doit retourner trois éléments.');
 

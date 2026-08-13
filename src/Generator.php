@@ -119,7 +119,7 @@ final class Generator
 
         foreach ($words as $index => $word) {
             if ($sentencePosition === 0) {
-                $word = ucfirst($word);
+                $word = $this->uppercaseFirst($word);
             }
 
             $sentencePosition++;
@@ -127,7 +127,8 @@ final class Generator
             $isSentenceEnd = $sentencePosition >= $sentenceLength || $isLast;
 
             if ($isSentenceEnd) {
-                $word .= $isLast ? '.' : ['.', '!', '?'][array_rand(['.', '!', '?'])];
+                $mark = $isLast ? '.' : ['.', '!', '?'][array_rand(['.', '!', '?'])];
+                $word .= in_array($mark, ['!', '?'], true) ? "\u{00A0}" . $mark : $mark;
                 $sentencePosition = 0;
                 $sentenceLength = random_int(7, 13);
             } elseif ($sentencePosition >= 3 && random_int(1, 6) === 1) {
@@ -138,6 +139,30 @@ final class Generator
         }
 
         return $result;
+    }
+
+    private function uppercaseFirst(string $word): string
+    {
+        if (function_exists('mb_strtoupper') && function_exists('mb_substr')) {
+            return mb_strtoupper(mb_substr($word, 0, 1, 'UTF-8'), 'UTF-8')
+                . mb_substr($word, 1, null, 'UTF-8');
+        }
+
+        return preg_replace_callback(
+            '/^./u',
+            static function (array $match): string {
+                $upper = strtr($match[0], [
+                    'à' => 'À', 'á' => 'Á', 'â' => 'Â', 'ä' => 'Ä', 'ã' => 'Ã', 'å' => 'Å',
+                    'æ' => 'Æ', 'ç' => 'Ç', 'è' => 'È', 'é' => 'É', 'ê' => 'Ê', 'ë' => 'Ë',
+                    'ì' => 'Ì', 'í' => 'Í', 'î' => 'Î', 'ï' => 'Ï', 'ñ' => 'Ñ', 'ò' => 'Ò',
+                    'ó' => 'Ó', 'ô' => 'Ô', 'ö' => 'Ö', 'õ' => 'Õ', 'œ' => 'Œ', 'ù' => 'Ù',
+                    'ú' => 'Ú', 'û' => 'Û', 'ü' => 'Ü', 'ý' => 'Ý', 'ÿ' => 'Ÿ',
+                ]);
+
+                return $upper === $match[0] ? strtoupper($match[0]) : $upper;
+            },
+            $word,
+        ) ?? $word;
     }
 
     /**
