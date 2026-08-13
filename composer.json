@@ -2,7 +2,7 @@
     "name": "crainios/ultimate-lorem-generator",
     "description": "A themed, dependency-free Lorem Ipsum generator for PHP.",
     "type": "library",
-    "license": "MIT",
+    "license": "AGPL-3.0-only",
     "authors": [
         {
             "name": "crainios"

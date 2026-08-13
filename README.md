@@ -95,4 +95,4 @@ php tests/run.php
 
 ## Licence
 
-Ultimate Lorem Generator est distribué sous licence MIT. Consultez [LICENSE](LICENSE).
+Ultimate Lorem Generator est distribué sous licence GNU Affero General Public License v3.0 (AGPL-3.0). Consultez [LICENSE](LICENSE).
