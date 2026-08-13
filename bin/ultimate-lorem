@@ -1,0 +1,58 @@
+#!/usr/bin/env php
+<?php
+
+declare(strict_types=1);
+
+use UltimateLoremGenerator\Generator;
+
+$autoloaders = [
+    dirname(__DIR__) . '/vendor/autoload.php',
+    dirname(__DIR__) . '/src/Theme.php',
+];
+
+if (is_file($autoloaders[0])) {
+    require $autoloaders[0];
+} else {
+    require dirname(__DIR__) . '/src/Theme.php';
+    require dirname(__DIR__) . '/src/OutputFormat.php';
+    require dirname(__DIR__) . '/src/Lexicons.php';
+    require dirname(__DIR__) . '/src/Generator.php';
+}
+
+$options = getopt('', ['words:', 'paragraphs:', 'theme::', 'punctuation', 'format::', 'help']);
+
+if (isset($options['help']) || !isset($options['words'], $options['paragraphs'])) {
+    echo <<<'HELP'
+Ultimate Lorem Generator
+
+Usage:
+  php bin/ultimate-lorem --words=120 --paragraphs=4 [options]
+
+Options:
+  --theme=NAME       botanique (défaut), science-fiction, cuisine,
+                     fantasy, ocean, retrofuturisme
+  --punctuation      Ajoute majuscules, virgules et fins de phrases
+  --format=FORMAT    text (défaut), html, array, markdown
+  --help             Affiche cette aide
+HELP;
+    echo PHP_EOL;
+    exit(isset($options['help']) ? 0 : 1);
+}
+
+try {
+    $format = (string) ($options['format'] ?? 'text');
+    $result = (new Generator())->generate(
+        (int) $options['words'],
+        (int) $options['paragraphs'],
+        (string) ($options['theme'] ?? 'botanique'),
+        isset($options['punctuation']),
+        $format,
+    );
+
+    echo $format === 'array'
+        ? var_export($result, true) . PHP_EOL
+        : $result . PHP_EOL;
+} catch (Throwable $exception) {
+    fwrite(STDERR, 'Erreur : ' . $exception->getMessage() . PHP_EOL);
+    exit(1);
+}

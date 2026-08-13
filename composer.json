@@ -1,0 +1,25 @@
+{
+    "name": "crainios/ultimate-lorem-generator",
+    "description": "A themed, dependency-free Lorem Ipsum generator for PHP.",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "crainios"
+        }
+    ],
+    "require": {
+        "php": "^8.1"
+    },
+    "autoload": {
+        "psr-4": {
+            "UltimateLoremGenerator\\": "src/"
+        }
+    },
+    "bin": [
+        "bin/ultimate-lorem"
+    ],
+    "scripts": {
+        "test": "php tests/run.php"
+    }
+}
