@@ -1,0 +1,107 @@
+From 0996e8e171e5b7fd7829766d8ca805b826b0b5ea Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Fran=C3=A7ois=20Milhiet?= <francois@milhiet.com>
+Date: Thu, 13 Aug 2026 20:30:16 +0200
+Subject: [PATCH] Apply French punctuation rules
+
+---
+ README.md         |  4 ++++
+ src/Generator.php | 29 +++++++++++++++++++++++++++--
+ tests/run.php     | 13 +++++++++++++
+ 3 files changed, 44 insertions(+), 2 deletions(-)
+
+diff --git a/README.md b/README.md
+index 4a7f06d..833880f 100644
+--- a/README.md
++++ b/README.md
+@@ -49,6 +49,10 @@ generate(
+ 
+ Le nombre de mots demandé est exact et réparti aussi équitablement que possible entre les paragraphes.
+ 
++Lorsque la ponctuation est activée, le générateur applique la typographie française :
++les points d’exclamation et d’interrogation sont précédés d’une espace insécable, et
++la première lettre de chaque phrase est mise en majuscule, y compris si elle est accentuée.
++
+ ### Thèmes
+ 
+ - `botanique` (défaut)
+diff --git a/src/Generator.php b/src/Generator.php
+index d3c3f2b..5f4ed85 100644
+--- a/src/Generator.php
++++ b/src/Generator.php
+@@ -119,7 +119,7 @@ final class Generator
+ 
+         foreach ($words as $index => $word) {
+             if ($sentencePosition === 0) {
+-                $word = ucfirst($word);
++                $word = $this->uppercaseFirst($word);
+             }
+ 
+             $sentencePosition++;
+@@ -127,7 +127,8 @@ final class Generator
+             $isSentenceEnd = $sentencePosition >= $sentenceLength || $isLast;
+ 
+             if ($isSentenceEnd) {
+-                $word .= $isLast ? '.' : ['.', '!', '?'][array_rand(['.', '!', '?'])];
++                $mark = $isLast ? '.' : ['.', '!', '?'][array_rand(['.', '!', '?'])];
++                $word .= in_array($mark, ['!', '?'], true) ? "\u{00A0}" . $mark : $mark;
+                 $sentencePosition = 0;
+                 $sentenceLength = random_int(7, 13);
+             } elseif ($sentencePosition >= 3 && random_int(1, 6) === 1) {
+@@ -140,6 +141,30 @@ final class Generator
+         return $result;
+     }
+ 
++    private function uppercaseFirst(string $word): string
++    {
++        if (function_exists('mb_strtoupper') && function_exists('mb_substr')) {
++            return mb_strtoupper(mb_substr($word, 0, 1, 'UTF-8'), 'UTF-8')
++                . mb_substr($word, 1, null, 'UTF-8');
++        }
++
++        return preg_replace_callback(
++            '/^./u',
++            static function (array $match): string {
++                $upper = strtr($match[0], [
++                    'à' => 'À', 'á' => 'Á', 'â' => 'Â', 'ä' => 'Ä', 'ã' => 'Ã', 'å' => 'Å',
++                    'æ' => 'Æ', 'ç' => 'Ç', 'è' => 'È', 'é' => 'É', 'ê' => 'Ê', 'ë' => 'Ë',
++                    'ì' => 'Ì', 'í' => 'Í', 'î' => 'Î', 'ï' => 'Ï', 'ñ' => 'Ñ', 'ò' => 'Ò',
++                    'ó' => 'Ó', 'ô' => 'Ô', 'ö' => 'Ö', 'õ' => 'Õ', 'œ' => 'Œ', 'ù' => 'Ù',
++                    'ú' => 'Ú', 'û' => 'Û', 'ü' => 'Ü', 'ý' => 'Ý', 'ÿ' => 'Ÿ',
++                ]);
++
++                return $upper === $match[0] ? strtoupper($match[0]) : $upper;
++            },
++            $word,
++        ) ?? $word;
++    }
++
+     /**
+      * @param list<string> $paragraphs
+      * @return string|list<string>
+diff --git a/tests/run.php b/tests/run.php
+index 84731d5..bb0611d 100644
+--- a/tests/run.php
++++ b/tests/run.php
+@@ -38,6 +38,19 @@ $punctuated = $generator->generate(30, 2, 'fantasy', true);
+ check(countWords($punctuated) === 30, 'La ponctuation ne doit pas modifier le nombre de mots.');
+ check(str_contains($punctuated, '.'), 'La sortie ponctuée doit contenir des fins de phrases.');
+ 
++$reflection = new ReflectionClass($generator);
++$uppercaseFirst = $reflection->getMethod('uppercaseFirst');
++check($uppercaseFirst->invoke($generator, 'écorêve') === 'Écorêve', 'Une initiale accentuée doit être mise en majuscule.');
++check($uppercaseFirst->invoke($generator, 'azur') === 'Azur', 'Une initiale ASCII doit être mise en majuscule.');
++
++$hasFrenchMark = false;
++for ($attempt = 0; $attempt < 20; $attempt++) {
++    $sample = $generator->generate(200, 1, 'botanique', true);
++    check(!preg_match('/(?<!\x{00A0})[!?]/u', $sample), 'Les points ! et ? doivent être précédés d’une espace insécable.');
++    $hasFrenchMark = $hasFrenchMark || (bool) preg_match('/\x{00A0}[!?]/u', $sample);
++}
++check($hasFrenchMark, 'Le test doit rencontrer au moins un point ! ou ? français.');
++
+ $array = $generator->generate(12, 3, format: 'array');
+ check(is_array($array) && count($array) === 3, 'Le format array doit retourner trois éléments.');
+ 
+-- 
+2.53.0
+
