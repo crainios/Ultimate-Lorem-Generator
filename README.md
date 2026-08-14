@@ -104,6 +104,20 @@ composer test
 php tests/run.php
 ```
 
+## Transparence sur le développement
+
+Le projet est initié, dirigé et validé par François Milhiet. Sa conception
+et son développement sont réalisés en collaboration avec ChatGPT
+d’OpenAI, au fil d’une longue série de prompts, d’analyses, d’itérations
+et de validations.
+
+Les orientations fonctionnelles, les choix d’architecture, les arbitrages,
+les essais sur serveur et la validation finale restent conduits par
+l’initiateur du projet. ChatGPT intervient comme assistant de conception,
+de programmation, de documentation et de contrôle. Cette méthode de
+développement assisté par intelligence artificielle est présentée
+explicitement dans un souci de transparence.
+
 ## Licence
 
 Ultimate Lorem Generator est distribué sous licence GNU Affero General Public License v3.0 (AGPL-3.0). Consultez [LICENSE](LICENSE).
