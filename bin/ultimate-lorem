@@ -15,11 +15,12 @@ if (is_file($autoloaders[0])) {
 } else {
     require dirname(__DIR__) . '/src/Theme.php';
     require dirname(__DIR__) . '/src/OutputFormat.php';
+    require dirname(__DIR__) . '/src/PunctuationStyle.php';
     require dirname(__DIR__) . '/src/Lexicons.php';
     require dirname(__DIR__) . '/src/Generator.php';
 }
 
-$options = getopt('', ['words:', 'paragraphs:', 'theme::', 'punctuation', 'format::', 'help']);
+$options = getopt('', ['words:', 'paragraphs:', 'theme::', 'punctuation::', 'format::', 'help']);
 
 if (isset($options['help']) || !isset($options['words'], $options['paragraphs'])) {
     echo <<<'HELP'
@@ -31,7 +32,8 @@ Usage:
 Options:
   --theme=NAME       botanique (défaut), science-fiction, cuisine,
                      fantasy, ocean, retrofuturisme
-  --punctuation      Ajoute majuscules, virgules et fins de phrases
+  --punctuation[=STYLE]
+                     french par défaut, ou standard, french, spanish
   --format=FORMAT    text (défaut), html, json, markdown
   --help             Affiche cette aide
 HELP;
@@ -41,11 +43,14 @@ HELP;
 
 try {
     $format = (string) ($options['format'] ?? 'text');
+    $punctuation = array_key_exists('punctuation', $options)
+        ? ($options['punctuation'] === false ? 'french' : (string) $options['punctuation'])
+        : false;
     $result = (new Generator())->generate(
         (int) $options['words'],
         (int) $options['paragraphs'],
         (string) ($options['theme'] ?? 'botanique'),
-        isset($options['punctuation']),
+        $punctuation,
         $format,
     );
 

@@ -32,7 +32,7 @@ $generator = new Generator();
 echo $generator->generate(120, 4);
 
 // Les cinq paramètres.
-echo $generator->generate(120, 4, 'science-fiction', true, 'markdown');
+echo $generator->generate(120, 4, 'science-fiction', 'french', 'markdown');
 ```
 
 La signature principale est :
@@ -42,16 +42,29 @@ generate(
     int $words,
     int $paragraphs,
     Theme|string $theme = Theme::BOTANIQUE,
-    bool $punctuation = false,
+    PunctuationStyle|string|bool $punctuation = false,
     OutputFormat|string $format = OutputFormat::TEXT,
 ): string
 ```
 
 Le nombre de mots demandé est exact et réparti aussi équitablement que possible entre les paragraphes.
 
-Lorsque la ponctuation est activée, le générateur applique la typographie française :
-les points d’exclamation et d’interrogation sont précédés d’une espace insécable, et
-la première lettre de chaque phrase est mise en majuscule, y compris si elle est accentuée.
+### Ponctuation
+
+- `standard` : aucune espace avant `!` et `?`
+- `french` : espace insécable avant `!` et `?`
+- `spanish` : signes ouvrants `¡` et `¿`, signes fermants sans espace
+- `false` : aucune ponctuation (valeur par défaut)
+
+Pour préserver la compatibilité, `true` équivaut au style `french`. La première lettre
+de chaque phrase est mise en majuscule, y compris si elle est accentuée.
+
+Les styles disponibles peuvent servir à construire une liste de choix :
+
+```php
+$styles = Generator::punctuationStyles();
+// ['standard', 'french', 'spanish']
+```
 
 ### Thèmes
 
@@ -73,13 +86,13 @@ Le format JSON peut être affiché ou transmis directement, sans provoquer d’e
 conversion de tableau en chaîne :
 
 ```php
-echo $generator->generate(40, 1, 'botanique', true, 'json');
+echo $generator->generate(40, 1, 'botanique', 'french', 'json');
 ```
 
 ### HTML sécurisé
 
 ```php
-echo $generator->generateHtml(80, 3, 'ocean', true);
+echo $generator->generateHtml(80, 3, 'ocean', 'spanish');
 ```
 
 `generateHtml()` échappe chaque paragraphe avec `htmlspecialchars()` avant de l'insérer dans un élément `<p>`.
@@ -91,6 +104,7 @@ Le script fonctionne avec ou sans installation préalable de Composer :
 ```bash
 php bin/ultimate-lorem --words=120 --paragraphs=4
 php bin/ultimate-lorem --words=80 --paragraphs=3 --theme=fantasy --punctuation
+php bin/ultimate-lorem --words=80 --paragraphs=3 --theme=fantasy --punctuation=spanish
 php bin/ultimate-lorem --words=40 --paragraphs=2 --theme=ocean --format=html
 ```
 

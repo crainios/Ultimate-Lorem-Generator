@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 require __DIR__ . '/../src/Theme.php';
 require __DIR__ . '/../src/OutputFormat.php';
+require __DIR__ . '/../src/PunctuationStyle.php';
 require __DIR__ . '/../src/Lexicons.php';
 require __DIR__ . '/../src/Generator.php';
 
@@ -36,7 +37,7 @@ check(!preg_match('/[,.!?]/', $plain), 'La ponctuation doit être désactivée p
 
 $punctuated = $generator->generate(30, 2, 'fantasy', true);
 check(countWords($punctuated) === 30, 'La ponctuation ne doit pas modifier le nombre de mots.');
-check(str_contains($punctuated, '.'), 'La sortie ponctuée doit contenir des fins de phrases.');
+check((bool) preg_match('/[.!?]/', $punctuated), 'La sortie ponctuée doit contenir des fins de phrases.');
 
 $reflection = new ReflectionClass($generator);
 $uppercaseFirst = $reflection->getMethod('uppercaseFirst');
@@ -50,6 +51,17 @@ for ($attempt = 0; $attempt < 20; $attempt++) {
     $hasFrenchMark = $hasFrenchMark || (bool) preg_match('/\x{00A0}[!?]/u', $sample);
 }
 check($hasFrenchMark, 'Le test doit rencontrer au moins un point ! ou ? français.');
+
+check(Generator::punctuationStyles() === ['standard', 'french', 'spanish'], 'Les trois styles doivent être exposés.');
+
+$openingMark = $reflection->getMethod('openingMark');
+$closingMark = $reflection->getMethod('closingMark');
+check($openingMark->invoke($generator, UltimateLoremGenerator\PunctuationStyle::STANDARD, '!') === '', 'Le style standard ne doit pas avoir de signe ouvrant.');
+check($closingMark->invoke($generator, UltimateLoremGenerator\PunctuationStyle::STANDARD, '!') === '!', 'Le style standard ne doit pas ajouter d’espace.');
+check($closingMark->invoke($generator, UltimateLoremGenerator\PunctuationStyle::FRENCH, '?') === "\u{00A0}?", 'Le style français doit ajouter une espace insécable.');
+check($openingMark->invoke($generator, UltimateLoremGenerator\PunctuationStyle::SPANISH, '!') === '¡', 'Le style espagnol doit ouvrir une exclamation.');
+check($openingMark->invoke($generator, UltimateLoremGenerator\PunctuationStyle::SPANISH, '?') === '¿', 'Le style espagnol doit ouvrir une interrogation.');
+check($closingMark->invoke($generator, UltimateLoremGenerator\PunctuationStyle::SPANISH, '?') === '?', 'Le style espagnol ne doit pas ajouter d’espace.');
 
 $json = $generator->generate(12, 3, format: 'json');
 $decoded = json_decode($json, true, flags: JSON_THROW_ON_ERROR);

@@ -12,11 +12,12 @@ final class Generator
         int $words,
         int $paragraphs,
         Theme|string $theme = Theme::BOTANIQUE,
-        bool $punctuation = false,
+        PunctuationStyle|string|bool $punctuation = false,
         OutputFormat|string $format = OutputFormat::TEXT,
     ): string {
         $theme = $this->resolveTheme($theme);
         $format = $this->resolveFormat($format);
+        $punctuation = $this->resolvePunctuation($punctuation);
         $this->validate($words, $paragraphs);
 
         $lexicon = Lexicons::all()[$theme->value];
@@ -35,7 +36,7 @@ final class Generator
         int $words,
         int $paragraphs,
         Theme|string $theme = Theme::BOTANIQUE,
-        bool $punctuation = false,
+        PunctuationStyle|string|bool $punctuation = false,
     ): string {
         return $this->generate($words, $paragraphs, $theme, $punctuation, OutputFormat::HTML);
     }
@@ -50,6 +51,12 @@ final class Generator
     public static function formats(): array
     {
         return array_column(OutputFormat::cases(), 'value');
+    }
+
+    /** @return list<string> */
+    public static function punctuationStyles(): array
+    {
+        return array_column(PunctuationStyle::cases(), 'value');
     }
 
     private function validate(int $words, int $paragraphs): void
@@ -83,7 +90,12 @@ final class Generator
      * @param list<string> $lexicon
      * @return array{string, string}
      */
-    private function paragraph(int $size, array $lexicon, bool $punctuation, ?string $previous): array
+    private function paragraph(
+        int $size,
+        array $lexicon,
+        ?PunctuationStyle $punctuation,
+        ?string $previous,
+    ): array
     {
         $words = [];
         for ($i = 0; $i < $size; $i++) {
@@ -97,19 +109,20 @@ final class Generator
             return [implode(' ', $words), $words[array_key_last($words)]];
         }
 
-        return [$this->punctuate($words), $words[array_key_last($words)]];
+        return [$this->punctuate($words, $punctuation), $words[array_key_last($words)]];
     }
 
     /** @param list<string> $words */
-    private function punctuate(array $words): string
+    private function punctuate(array $words, PunctuationStyle $style): string
     {
         $result = '';
         $sentenceLength = random_int(7, 13);
         $sentencePosition = 0;
+        $sentenceMark = $this->randomSentenceMark();
 
         foreach ($words as $index => $word) {
             if ($sentencePosition === 0) {
-                $word = $this->uppercaseFirst($word);
+                $word = $this->openingMark($style, $sentenceMark) . $this->uppercaseFirst($word);
             }
 
             $sentencePosition++;
@@ -117,10 +130,10 @@ final class Generator
             $isSentenceEnd = $sentencePosition >= $sentenceLength || $isLast;
 
             if ($isSentenceEnd) {
-                $mark = $isLast ? '.' : ['.', '!', '?'][array_rand(['.', '!', '?'])];
-                $word .= in_array($mark, ['!', '?'], true) ? "\u{00A0}" . $mark : $mark;
+                $word .= $this->closingMark($style, $sentenceMark);
                 $sentencePosition = 0;
                 $sentenceLength = random_int(7, 13);
+                $sentenceMark = $this->randomSentenceMark();
             } elseif ($sentencePosition >= 3 && random_int(1, 6) === 1) {
                 $word .= ',';
             }
@@ -129,6 +142,35 @@ final class Generator
         }
 
         return $result;
+    }
+
+    private function randomSentenceMark(): string
+    {
+        $marks = ['.', '!', '?'];
+
+        return $marks[array_rand($marks)];
+    }
+
+    private function openingMark(PunctuationStyle $style, string $mark): string
+    {
+        if ($style !== PunctuationStyle::SPANISH) {
+            return '';
+        }
+
+        return match ($mark) {
+            '!' => '¡',
+            '?' => '¿',
+            default => '',
+        };
+    }
+
+    private function closingMark(PunctuationStyle $style, string $mark): string
+    {
+        if ($style === PunctuationStyle::FRENCH && in_array($mark, ['!', '?'], true)) {
+            return "\u{00A0}" . $mark;
+        }
+
+        return $mark;
     }
 
     private function uppercaseFirst(string $word): string
@@ -194,5 +236,23 @@ final class Generator
 
         return OutputFormat::tryFrom($format)
             ?? throw new InvalidArgumentException('Format inconnu : ' . $format . '.');
+    }
+
+    private function resolvePunctuation(PunctuationStyle|string|bool $punctuation): ?PunctuationStyle
+    {
+        if ($punctuation instanceof PunctuationStyle) {
+            return $punctuation;
+        }
+
+        if ($punctuation === false || $punctuation === 'false') {
+            return null;
+        }
+
+        if ($punctuation === true || $punctuation === 'true') {
+            return PunctuationStyle::FRENCH;
+        }
+
+        return PunctuationStyle::tryFrom($punctuation)
+            ?? throw new InvalidArgumentException('Style de ponctuation inconnu : ' . $punctuation . '.');
     }
 }
