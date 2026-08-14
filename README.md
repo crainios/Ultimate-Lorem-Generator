@@ -44,7 +44,7 @@ generate(
     Theme|string $theme = Theme::BOTANIQUE,
     bool $punctuation = false,
     OutputFormat|string $format = OutputFormat::TEXT,
-): string|array
+): string
 ```
 
 Le nombre de mots demandé est exact et réparti aussi équitablement que possible entre les paragraphes.
@@ -66,8 +66,15 @@ la première lettre de chaque phrase est mise en majuscule, y compris si elle es
 
 - `text` (défaut) : paragraphes séparés par une ligne vide
 - `html` : éléments `<p>` dont le contenu est échappé
-- `array` : tableau PHP contenant un élément par paragraphe
+- `json` : chaîne JSON contenant un tableau de paragraphes
 - `markdown` : paragraphes séparés par une ligne vide
+
+Le format JSON peut être affiché ou transmis directement, sans provoquer d’erreur de
+conversion de tableau en chaîne :
+
+```php
+echo $generator->generate(40, 1, 'botanique', true, 'json');
+```
 
 ### HTML sécurisé
 

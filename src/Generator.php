@@ -8,16 +8,13 @@ use InvalidArgumentException;
 
 final class Generator
 {
-    /**
-     * @return string|list<string>
-     */
     public function generate(
         int $words,
         int $paragraphs,
         Theme|string $theme = Theme::BOTANIQUE,
         bool $punctuation = false,
         OutputFormat|string $format = OutputFormat::TEXT,
-    ): string|array {
+    ): string {
         $theme = $this->resolveTheme($theme);
         $format = $this->resolveFormat($format);
         $this->validate($words, $paragraphs);
@@ -40,14 +37,7 @@ final class Generator
         Theme|string $theme = Theme::BOTANIQUE,
         bool $punctuation = false,
     ): string {
-        $paragraphs = $this->generate($words, $paragraphs, $theme, $punctuation, OutputFormat::ARRAY);
-
-        return implode("\n", array_map(
-            static fn (string $paragraph): string => '<p>'
-                . htmlspecialchars($paragraph, ENT_QUOTES | ENT_SUBSTITUTE | ENT_HTML5, 'UTF-8')
-                . '</p>',
-            $paragraphs,
-        ));
+        return $this->generate($words, $paragraphs, $theme, $punctuation, OutputFormat::HTML);
     }
 
     /** @return list<string> */
@@ -167,13 +157,16 @@ final class Generator
 
     /**
      * @param list<string> $paragraphs
-     * @return string|list<string>
+     * @return string
      */
-    private function format(array $paragraphs, OutputFormat $format): string|array
+    private function format(array $paragraphs, OutputFormat $format): string
     {
         return match ($format) {
             OutputFormat::TEXT, OutputFormat::MARKDOWN => implode("\n\n", $paragraphs),
-            OutputFormat::ARRAY => $paragraphs,
+            OutputFormat::JSON => json_encode(
+                $paragraphs,
+                JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES,
+            ),
             OutputFormat::HTML => implode("\n", array_map(
                 static fn (string $paragraph): string => '<p>'
                     . htmlspecialchars($paragraph, ENT_QUOTES | ENT_SUBSTITUTE | ENT_HTML5, 'UTF-8')

@@ -51,8 +51,11 @@ for ($attempt = 0; $attempt < 20; $attempt++) {
 }
 check($hasFrenchMark, 'Le test doit rencontrer au moins un point ! ou ? français.');
 
-$array = $generator->generate(12, 3, format: 'array');
-check(is_array($array) && count($array) === 3, 'Le format array doit retourner trois éléments.');
+$json = $generator->generate(12, 3, format: 'json');
+$decoded = json_decode($json, true, flags: JSON_THROW_ON_ERROR);
+check(is_string($json), 'Le format JSON doit retourner une chaîne.');
+check(is_array($decoded) && count($decoded) === 3, 'Le JSON doit contenir trois paragraphes.');
+check(countWords(implode(' ', $decoded)) === 12, 'Le JSON doit conserver le nombre de mots.');
 
 $html = $generator->generateHtml(12, 3);
 check(substr_count($html, '<p>') === 3, 'generateHtml doit produire trois éléments p.');

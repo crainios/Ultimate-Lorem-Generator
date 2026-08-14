@@ -32,7 +32,7 @@ Options:
   --theme=NAME       botanique (défaut), science-fiction, cuisine,
                      fantasy, ocean, retrofuturisme
   --punctuation      Ajoute majuscules, virgules et fins de phrases
-  --format=FORMAT    text (défaut), html, array, markdown
+  --format=FORMAT    text (défaut), html, json, markdown
   --help             Affiche cette aide
 HELP;
     echo PHP_EOL;
@@ -49,9 +49,7 @@ try {
         $format,
     );
 
-    echo $format === 'array'
-        ? var_export($result, true) . PHP_EOL
-        : $result . PHP_EOL;
+    echo $result . PHP_EOL;
 } catch (Throwable $exception) {
     fwrite(STDERR, 'Erreur : ' . $exception->getMessage() . PHP_EOL);
     exit(1);

@@ -8,6 +8,6 @@ enum OutputFormat: string
 {
     case TEXT = 'text';
     case HTML = 'html';
-    case ARRAY = 'array';
+    case JSON = 'json';
     case MARKDOWN = 'markdown';
 }
