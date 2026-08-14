@@ -2,6 +2,8 @@
 
 Générateur de faux texte PHP, sans dépendance, proposant six univers lexicaux originaux et plusieurs formats de sortie.
 
+**Démo en ligne :** [Tester Ultimate Lorem Generator](https://anshare.net/crainios/Ultimate-Lorem-Generator/)
+
 ## Prérequis
 
 - PHP 8.1 ou supérieur
