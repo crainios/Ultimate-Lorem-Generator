@@ -15,14 +15,6 @@ Générateur de faux texte PHP, sans dépendance, proposant six univers lexicaux
 composer require crainios/ultimate-lorem-generator
 ```
 
-Pour utiliser le projet avant sa publication sur Packagist :
-
-```bash
-git clone https://github.com/crainios/Ultimate-Lorem-Generator.git
-cd Ultimate-Lorem-Generator
-composer install
-```
-
 ## Utilisation PHP
 
 ```php
